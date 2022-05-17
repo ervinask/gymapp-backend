@@ -4,16 +4,9 @@ const mysql = require('mysql2/promise');
 const jwt = require('jsonwebtoken');
 
 const { mysqlConfig, jwtSecret } = require('../../config');
-// const { isLoggedIn } = require('../../middleware');
+const { setsValidation } = require('../../middleware/validation');
 
 const router = express.Router();
-
-const setSchema = Joi.object({
-  weight: Joi.number().required(),
-  reps: Joi.number().required(),
-  sets: Joi.number().required(),
-  exercise_id: Joi.string().required(),
-});
 
 router.get('/', async (req, res) => {
   const token = req.headers.authorization.split(' ')[1];
@@ -35,15 +28,7 @@ router.get('/', async (req, res) => {
   }
 });
 
-router.post('/', async (req, res) => {
-  let setDetails;
-  try {
-    setDetails = await setSchema.validateAsync(req.body);
-  } catch (err) {
-    console.log(err);
-    return res.status(400).send({ err: 'Incorrect data sent' });
-  }
-
+router.post('/', setsValidation, async (req, res) => {
   const token = req.headers.authorization.split(' ')[1];
   const userDetails = jwt.verify(token, jwtSecret);
 
@@ -53,11 +38,11 @@ router.post('/', async (req, res) => {
     const [data] = await con.execute(
       `INSERT INTO sets 
       (weight, reps, sets, user_id, exercise_id) VALUES 
-      (${mysql.escape(setDetails.weight)}, 
-          ${mysql.escape(setDetails.reps)}, 
-          ${mysql.escape(setDetails.sets)},
+      (${mysql.escape(req.body.weight)}, 
+          ${mysql.escape(req.body.reps)}, 
+          ${mysql.escape(req.body.sets)},
           ${mysql.escape(userDetails.accountId)},
-          ${mysql.escape(setDetails.exercise_id)})`,
+          ${mysql.escape(req.body.exercise_id)})`,
     );
 
     await con.end();

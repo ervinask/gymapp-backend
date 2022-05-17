@@ -4,14 +4,9 @@ const mysql = require('mysql2/promise');
 
 const { mysqlConfig } = require('../../config');
 const isLoggedIn = require('../../middleware/auth');
+const { exerciseValidation } = require('../../middleware/validation');
 
 const router = express.Router();
-
-const exerciseSchema = Joi.object({
-  name: Joi.string().trim().required(),
-  description: Joi.string().trim().required(),
-  video: Joi.string().trim().required(),
-});
 
 router.get('/', isLoggedIn, async (req, res) => {
   try {
@@ -27,29 +22,20 @@ router.get('/', isLoggedIn, async (req, res) => {
   }
 });
 
-router.post('/', async (req, res) => {
-  let exerciseDetails;
-
-  try {
-    exerciseDetails = await exerciseSchema.validateAsync(req.body);
-  } catch (err) {
-    console.log(err);
-    return res.status(400).send({ err: 'Incorrect data passed' });
-  }
-
-  if (!exerciseDetails.video.startsWith('https://www.youtube.com/watch?v=')) {
+router.post('/', exerciseValidation, async (req, res) => {
+  if (!req.body.video.startsWith('https://www.youtube.com/watch?v=')) {
     return res.status(400).send({ err: 'Incorrect URL passed' });
   }
 
-  exerciseDetails.video = exerciseDetails.video.split('?v=').pop();
+  req.body.video = req.body.video.split('?v=').pop();
 
   try {
     const con = await mysql.createConnection(mysqlConfig);
     const [data] = await con.execute(
       `INSERT INTO exercises (name, description, video)
-      VALUES (${mysql.escape(exerciseDetails.name)}, 
-      ${mysql.escape(exerciseDetails.description)},
-      ${mysql.escape(exerciseDetails.video)}
+      VALUES (${mysql.escape(req.body.name)}, 
+      ${mysql.escape(req.body.description)},
+      ${mysql.escape(req.body.video)}
       )`,
     );
     await con.end();
