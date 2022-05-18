@@ -1,4 +1,4 @@
-const { registrationSchema, loginSchema } = require('../models/auth');
+const { registrationSchema, loginSchema, changePasswordSchema } = require('../models/auth');
 const { exerciseSchema } = require('../models/exercises');
 const { setsSchema } = require('../models/sets');
 
@@ -17,4 +17,5 @@ module.exports = {
   loginValidation: (req, res, next) => validation(req, res, next, loginSchema),
   exerciseValidation: (req, res, next) => validation(req, res, next, exerciseSchema),
   setsValidation: (req, res, next) => validation(req, res, next, setsSchema),
+  changePasswordValidation: (req, res, next) => validation(req, res, next, changePasswordSchema),
 };

@@ -10,7 +10,7 @@ const router = express.Router();
 
 router.get('/', async (req, res) => {
   const token = req.headers.authorization.split(' ')[1];
-  const userDetails = jwt.verify(token, 'ervinasss123');
+  const userDetails = jwt.verify(token, jwtSecret);
 
   try {
     const con = await mysql.createConnection(mysqlConfig);

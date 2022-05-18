@@ -4,7 +4,8 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 
 const { mysqlConfig, jwtSecret } = require('../../config');
-const { registrationValidation, loginValidation } = require('../../middleware/validation');
+const { registrationValidation, loginValidation, changePasswordValidation } = require('../../middleware/validation');
+const isLoggedIn = require('../../middleware/auth');
 
 const router = express.Router();
 
@@ -66,6 +67,36 @@ router.post('/login', loginValidation, async (req, res) => {
   } catch (err) {
     console.log(err);
     return res.status(500).send({ err: 'A server issue occured' });
+  }
+});
+
+router.post('/change-password', changePasswordValidation, isLoggedIn, async (req, res) => {
+  try {
+    const con = await mysql.createConnection(mysqlConfig);
+    const [data] = await con.execute(
+      `SELECT id, email, password 
+      FROM users 
+      WHERE id = ${mysql.escape(req.user.accountId)} LIMIT 1`,
+    );
+
+    console.log(data);
+    const chechHash = bcrypt.compareSync(req.body.oldPassword, data[0].password);
+
+    if (!chechHash) {
+      await con.end();
+      return res.status(400).send({ err: 'Incorrect old password' });
+    }
+
+    const newPasswordHash = bcrypt.hashSync(req.body.newPassword, 10);
+
+    const changePassDBRes = await con.execute(
+      `UPDATE users SET password=${mysql.escape(newPasswordHash)} WHERE id=${mysql.escape(req.user.accountId)}`,
+    );
+
+    await con.end();
+    return res.send({ msg: 'Password changed' });
+  } catch (err) {
+    return res.status(500).send({ err: 'something wrong with server, please try again later' });
   }
 });
 
