@@ -37,12 +37,13 @@ router.post('/', setsValidation, async (req, res) => {
     console.log(userDetails.accountId);
     const [data] = await con.execute(
       `INSERT INTO sets 
-      (weight, reps, sets, user_id, exercise_id) VALUES 
+      (weight, reps, sets, user_id, exercise_id, time) VALUES 
       (${mysql.escape(req.body.weight)}, 
           ${mysql.escape(req.body.reps)}, 
           ${mysql.escape(req.body.sets)},
           ${mysql.escape(userDetails.accountId)},
-          ${mysql.escape(req.body.exercise_id)})`,
+          ${mysql.escape(req.body.exercise_id)}, 
+          ${mysql.escape(req.body.time)})`,
     );
 
     await con.end();

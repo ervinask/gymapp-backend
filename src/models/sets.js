@@ -5,6 +5,7 @@ const setsSchema = Joi.object({
   reps: Joi.number().required(),
   sets: Joi.number().required(),
   exercise_id: Joi.string().required(),
+  time: Joi.string().required(),
 });
 
 module.exports = { setsSchema };
