@@ -41,7 +41,7 @@ router.post('/login', loginValidation, async (req, res) => {
   try {
     const con = await mysql.createConnection(mysqlConfig);
     const [data] = await con.execute(`
-      SELECT id, email, password
+      SELECT id, email, password, name
       FROM users 
       WHERE email = ${mysql.escape(req.body.email)} LIMIT 1`);
     await con.end();
@@ -56,9 +56,11 @@ router.post('/login', loginValidation, async (req, res) => {
 
     const token = jwt.sign({ accountId: data[0].id }, jwtSecret);
     console.log(token);
+    const name = data[0].name;
 
     return res.send({
       msg: 'User successfully logged in',
+      name: name,
       token,
     });
   } catch (err) {

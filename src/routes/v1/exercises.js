@@ -22,7 +22,7 @@ router.get('/', isLoggedIn, async (req, res) => {
   }
 });
 
-router.post('/', exerciseValidation, async (req, res) => {
+router.post('/', isLoggedIn, exerciseValidation, async (req, res) => {
   if (!req.body.video.startsWith('https://www.youtube.com/watch?v=')) {
     return res.status(400).send({ err: 'Incorrect URL passed' });
   }
